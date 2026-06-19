@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Roster - Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Student Roster</h2>
+    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+        </tr>
+        {% for student in students %}
+        <tr>
+            <td>{{ student.username }}</td>
+            <td>{{ student.email }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

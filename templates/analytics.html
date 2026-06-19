@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analytics - Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .stat { background: #f9f9f9; padding: 20px; margin: 10px 0; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Attendance Analytics</h2>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    
+    <div class="stat">
+        <h3>Overall Statistics</h3>
+        <p>Total Attendance Records: {{ total_records }}</p>
+        <p>Unique Students: {{ unique_students }}</p>
+        <p>Today's Attendance: {{ today_count }}</p>
+    </div>
+    
+    <div class="stat">
+        <h3>Top 5 Most Active Students</h3>
+        <table>
+            <tr>
+                <th>Student Name</th>
+                <th>Attendance Count</th>
+            </tr>
+            {% for student, count in top_students %}
+            <tr>
+                <td>{{ student }}</td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

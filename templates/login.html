@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Attendance System</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+            color: #333;
+        }
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            background: #ffffffee;
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(6px);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-header h2 {
+            margin: 0;
+            font-size: 32px;
+            letter-spacing: 0.4px;
+            color: #2f2f6b;
+        }
+        .login-header p {
+            margin: 8px 0 0;
+            color: #6b6b8f;
+            font-size: 14px;
+        }
+        form {
+            display: grid;
+            gap: 16px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d6d6e7;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus {
+            border-color: #615bef;
+            box-shadow: 0 0 0 4px rgba(97, 91, 239, 0.12);
+        }
+        button {
+            padding: 14px 16px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            background: linear-gradient(135deg, #615bef, #3f8dff);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px rgba(63, 141, 255, 0.24);
+        }
+        .links {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        .links a {
+            color: #4f6bff;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .flash-messages {
+            margin-top: 20px;
+            padding: 14px 16px;
+            background: #fff4f0;
+            border: 1px solid #ffb3a7;
+            border-radius: 12px;
+            color: #7c3d2d;
+            font-size: 14px;
+        }
+        .flash-messages ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-header">
+            <h2>Attendance Login</h2>
+            <p>Access your admin, lecturer, or student dashboard</p>
+        </div>
+        <form method="post">
+            <input type="text" name="username" placeholder="Username or Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="links">
+            <a href="{{ url_for('register') }}">Create an account</a>
+            <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+        </div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>

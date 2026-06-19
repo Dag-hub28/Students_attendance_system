@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Test - Attendance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .status.checking {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+        
+        .camera-preview {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-preview.disabled {
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            color: #999;
+            font-size: 16px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #bbb;
+        }
+        
+        .checklist {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .checklist h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        
+        .check-item.pass {
+            border-left-color: #4CAF50;
+            background: #f1f8f6;
+        }
+        
+        .check-item.fail {
+            border-left-color: #f44336;
+            background: #fef5f5;
+        }
+        
+        .check-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            min-width: 24px;
+        }
+        
+        .check-content {
+            flex: 1;
+        }
+        
+        .check-content .label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .check-content .detail {
+            color: #666;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📹 Camera Permission Test</h1>
+            <p>Verify your camera is working before class starts</p>
+        </div>
+        
+        <div id="statusDiv" class="status checking">
+            ⏳ Click "Test Camera" to check permissions...
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-primary" id="testBtn" onclick="testCamera()">Test Camera</button>
+            <button class="btn btn-secondary" id="stopBtn" onclick="stopCamera()" style="display: none;">Stop Test</button>
+        </div>
+        
+        <div id="previewDiv" class="camera-preview disabled">
+            📹 Camera preview will appear here
+        </div>
+        
+        <div class="checklist" id="checklistDiv">
+            <h3>✓ Permission Checks</h3>
+            <div id="checksContainer">
+                <div class="check-item">
+                    <div class="check-icon">⏳</div>
+                    <div class="check-content">
+                        <div class="label">Running checks...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
+    </div>
+    
+    <script>
+        let localStream = null;
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        
+        const checks = {
+            'browser_support': { passed: false, label: 'Browser Support', detail: '' },
+            'https_or_localhost': { passed: false, label: 'HTTPS or Localhost', detail: '' },
+            'permission_granted': { passed: false, label: 'Camera Permission', detail: '' },
+            'camera_active': { passed: false, label: 'Camera Feed Active', detail: '' }
+        };
+        
+        function updateStatus(message, type) {
+            const div = document.getElementById('statusDiv');
+            div.textContent = message;
+            div.className = 'status ' + type;
+        }
+        
+        function updateChecks() {
+            const container = document.getElementById('checksContainer');
+            container.innerHTML = '';
+            
+            for (const [key, check] of Object.entries(checks)) {
+                const item = document.createElement('div');
+                item.className = 'check-item ' + (check.passed ? 'pass' : 'fail');
+                item.innerHTML = `
+                    <div class="check-icon">${check.passed ? '✓' : '✗'}</div>
+                    <div class="check-content">
+                        <div class="label">${check.label}</div>
+                        ${check.detail ? `<div class="detail">${check.detail}</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(item);
+            }
+        }
+        
+        function checkPrerequisites() {
+            // Browser support
+            checks['browser_support'].passed = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+            checks['browser_support'].detail = checks['browser_support'].passed ? 'Your browser supports camera access' : 'Your browser does not support camera access';
+            
+            // HTTPS or localhost
+            checks['https_or_localhost'].passed = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            checks['https_or_localhost'].detail = checks['https_or_localhost'].passed ? 'Connection is secure' : 'Camera requires HTTPS (except localhost)';
+            
+            updateChecks();
+        }
+        
+        async function testCamera() {
+            checkPrerequisites();
+            
+            if (!checks['browser_support'].passed) {
+                updateStatus('❌ Your browser does not support camera access', 'error');
+                return;
+            }
+            
+            if (!checks['https_or_localhost'].passed) {
+                updateStatus('❌ Camera access requires HTTPS connection', 'error');
+                return;
+            }
+            
+            updateStatus('⏳ Requesting camera permission...', 'checking');
+            document.getElementById('testBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                });
+                
+                checks['permission_granted'].passed = true;
+                checks['permission_granted'].detail = 'Camera permission granted successfully';
+                checks['camera_active'].passed = true;
+                checks['camera_active'].detail = 'Camera feed is active and ready';
+                
+                updateStatus('✓ Camera is working perfectly!', 'success');
+                document.getElementById('previewDiv').classList.remove('disabled');
+                document.getElementById('previewDiv').innerHTML = '';
+                video.srcObject = localStream;
+                document.getElementById('previewDiv').appendChild(video);
+                
+            } catch (err) {
+                checks['permission_granted'].passed = false;
+                checks['permission_granted'].detail = 'Camera permission denied or not available';
+                
+                updateStatus('❌ Camera Error: ' + err.message, 'error');
+                
+                if (err.name === 'NotAllowedError') {
+                    checks['permission_granted'].detail = 'You denied camera permission. Allow it in your browser settings.';
+                } else if (err.name === 'NotFoundError') {
+                    checks['permission_granted'].detail = 'No camera device found. Check hardware connections.';
+                }
+            }
+            
+            updateChecks();
+        }
+        
+        function stopCamera() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            document.getElementById('previewDiv').classList.add('disabled');
+            document.getElementById('previewDiv').innerHTML = '📹 Camera preview will appear here';
+            document.getElementById('testBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            updateStatus('📹 Click "Test Camera" to check permissions...', 'checking');
+        }
+        
+        // Initial check
+        checkPrerequisites();
+    </script>
+</body>
+</html>

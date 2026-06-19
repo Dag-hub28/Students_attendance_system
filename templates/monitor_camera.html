@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Camera Monitoring - Attendance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 25px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-badge.inactive {
+            background: #f44336;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-card label {
+            display: block;
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .info-card .value {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            aspect-ratio: 16 / 9;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .detection-list {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .detection-list h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .detection-item {
+            background: white;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .detection-item.marked {
+            border-left-color: #4CAF50;
+            background: #f1f8f5;
+        }
+        
+        .student-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge.pending {
+            background: #ff9800;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-card .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📹 Live Monitoring</h1>
+                <p style="color: #666; margin-top: 5px;">Camera feed with automatic attendance</p>
+            </div>
+            <div class="status-badge {% if not monitor_status %}inactive{% endif %}" id="statusBadge">{% if monitor_status %}● Recording{% else %}● Not Active{% endif %}</div>
+                <div class="value">{{ student_name }}</div>
+            </div>
+            <div class="info-card">
+                <label>Class</label>
+                <div class="value">{{ class_name }}</div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info" id="infoAlert">
+            Camera monitoring is active. Your presence is being tracked automatically.
+        </div>
+        
+        <!-- Camera Feed Canvas -->
+        <div class="camera-container">
+            <canvas id="canvas"></canvas>
+            <div class="camera-overlay" id="overlay"></div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">Students Detected</div>
+                <div class="number" id="detectedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Attendance Marked</div>
+                <div class="number" id="markedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Monitoring Time</div>
+                <div class="number" id="timeCount">0m</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Last Verification</div>
+                <div class="number" id="verificationStatus">Pending</div>
+            </div>
+        </div>
+        
+        <!-- Detection Results -->
+        <div class="detection-list">
+            <h3>
+                <span>✓</span> Detected Faces & Attendance
+            </h3>
+            <div id="detectionResults">
+                <p style="color: #999;">Waiting for face detection...</p>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-primary" id="pauseBtn" onclick="togglePause()">⏸ Pause Monitoring</button>
+            <a href="/leave_class" class="btn btn-danger">🚪 Leave Class</a>
+        </div>
+    </div>
+    
+    <script>
+        let stream = null;
+        let mediaRecorder = null;
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let video = document.createElement('video');
+        let isMonitoring = true;
+        let startTime = Date.now();
+        let detectedStudents = new Set();
+        let markedStudents = new Set();
+        let frameCount = 0;
+        let verificationFailures = 0;
+        const FRAME_INTERVAL = 5; // Process every 5th frame
+        const VERIFY_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+        let lastVerificationText = 'Pending';
+        
+        // Request camera access
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    startMonitoring();
+                };
+            } catch (err) {
+                showAlert('Error accessing camera: ' + err.message, 'danger');
+                document.getElementById('statusBadge').classList.add('inactive');
+                document.getElementById('statusBadge').textContent = '● Camera Access Denied';
+            }
+        }
+        
+        function startMonitoring() {
+            // Set canvas size to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            setInterval(captureFrame, 100);
+            setInterval(updateStats, 1000);
+            setInterval(verifyPresence, VERIFY_INTERVAL_MS);
+        }
+        
+        async function captureFrame() {
+            if (!isMonitoring || !stream) return;
+            
+            // Draw video frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Process frame every FRAME_INTERVAL frames
+            frameCount++;
+            if (frameCount % FRAME_INTERVAL === 0) {
+                // Send frame to server for processing
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append('frame', blob, 'frame.jpg');
+                    
+                    try {
+                        const response = await fetch('/api/camera/frame', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        if (data.detected) {
+                            data.detected.forEach(name => detectedStudents.add(name));
+                        }
+                        if (data.marked) {
+                            data.marked.forEach(name => markedStudents.add(name));
+                            updateDetectionList(data.marked, true);
+                        }
+                    } catch (err) {
+                        console.error('Frame processing error:', err);
+                    }
+                }, 'image/jpeg', 0.8);
+            }
+        }
+
+        async function verifyPresence() {
+            if (!isMonitoring || !stream) return;
+            if (!video.videoWidth) return;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('frame', blob, 'verify.jpg');
+
+                try {
+                    const response = await fetch('/api/verify_presence', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.verified) {
+                        lastVerificationText = 'Verified';
+                        verificationFailures = 0;
+                        document.getElementById('statusBadge').classList.remove('inactive');
+                        showAlert('Presence verified successfully.', 'success');
+                    } else {
+                        lastVerificationText = 'Failed';
+                        verificationFailures += 1;
+                        document.getElementById('statusBadge').classList.add('inactive');
+                        showAlert('Continuous verification failed. Please look at the camera.', 'danger');
+                        if (verificationFailures >= 3) {
+                            showAlert('Multiple verification failures detected. Please reposition your face and ensure good lighting.', 'danger');
+                        }
+                    }
+                    document.getElementById('verificationStatus').textContent = lastVerificationText;
+                } catch (err) {
+                    console.error('Verification error:', err);
+                    showAlert('Verification request failed.', 'danger');
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        function updateDetectionList(students, marked = false) {
+            const container = document.getElementById('detectionResults');
+            
+            if (container.innerText.includes('Waiting')) {
+                container.innerHTML = '';
+            }
+            
+            students.forEach(name => {
+                // Check if already displayed
+                if (!document.querySelector(`[data-student="${name}"]`)) {
+                    const item = document.createElement('div');
+                    item.className = 'detection-item ' + (marked ? 'marked' : '');
+                    item.setAttribute('data-student', name);
+                    item.innerHTML = `
+                        <span class="student-name">${name}</span>
+                        <span class="badge ${marked ? '' : 'pending'}">${marked ? '✓ Marked' : 'Detecting'}</span>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+        
+        function updateStats() {
+            document.getElementById('detectedCount').textContent = detectedStudents.size;
+            document.getElementById('markedCount').textContent = markedStudents.size;
+            document.getElementById('verificationStatus').textContent = lastVerificationText;
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 60000);
+            document.getElementById('timeCount').textContent = elapsed + 'm';
+        }
+        
+        function togglePause() {
+            isMonitoring = !isMonitoring;
+            const btn = document.getElementById('pauseBtn');
+            const badge = document.getElementById('statusBadge');
+            
+            if (isMonitoring) {
+                btn.textContent = '⏸ Pause Monitoring';
+                badge.textContent = '● Recording';
+                badge.classList.remove('inactive');
+            } else {
+                btn.textContent = '▶ Resume Monitoring';
+                badge.textContent = '● Paused';
+                badge.classList.add('inactive');
+            }
+        }
+        
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('infoAlert');
+            alert.textContent = message;
+            alert.className = `alert show alert-${type}`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+        
+        // Start camera on page load
+        startCamera();
+    </script>
+</body>
+</html>

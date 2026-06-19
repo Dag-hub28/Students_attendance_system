@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lecture Audio Broadcast</title>
+    <style>
+        body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fb; color: #333; margin: 0; padding: 20px;}
+        .page {max-width: 800px; margin: 0 auto;}
+        h1 {margin-bottom: 16px;}
+        button {font-size: 16px; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; background: #4CAF50; color: white;}
+        button:disabled {opacity: 0.6; cursor: default;}
+        .status {margin-top: 20px; padding: 18px; background: white; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06);}
+        .status p {margin: 0 0 10px;}
+        .hint {margin-top: 14px; color: #555;}
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Lecture Audio Broadcast (Teacher)</h1>
+        <p>When you start this page, your microphone audio will be sent to the student listener page.</p>
+        <button id="startBtn">Start Broadcast</button>
+        <div class="status" id="status">
+            <p><strong>Status:</strong> not started</p>
+            <p id="logMessage">Press "Start Broadcast" and allow microphone access.</p>
+        </div>
+        <div class="hint">
+            <p>Use the student listener page at <code>/lecture/student</code> in a second browser or device.</p>
+            <p>Both pages must run on the same server origin for this demo.</p>
+        </div>
+    </div>
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const logMessage = document.getElementById('logMessage');
+        let pc = null;
+        let localStream = null;
+        let answerPolling = null;
+        let icePolling = null;
+
+        function log(text) {
+            logMessage.textContent = text;
+            console.log(text);
+        }
+
+        async function startBroadcast() {
+            startBtn.disabled = true;
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+                pc.onicecandidate = async event => {
+                    if (event.candidate) {
+                        await fetch('/lecture/signaling/ice?sender=teacher', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(event.candidate)
+                        });
+                    }
+                };
+
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                await fetch('/lecture/signaling/offer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(offer)
+                });
+
+                log('Offer created and sent. Waiting for student answer...');
+                answerPolling = setInterval(checkForAnswer, 2000);
+                icePolling = setInterval(() => pollIce('teacher'), 2000);
+            } catch (err) {
+                log('Error: ' + err.message);
+                startBtn.disabled = false;
+            }
+        }
+
+        async function checkForAnswer() {
+            try {
+                const response = await fetch('/lecture/signaling/answer');
+                const answer = await response.json();
+                if (answer && answer.type === 'answer' && pc && !pc.currentRemoteDescription) {
+                    await pc.setRemoteDescription(answer);
+                    log('Answer received. Lecture audio is now live.');
+                    clearInterval(answerPolling);
+                }
+            } catch (err) {
+                console.warn('Answer polling error:', err);
+            }
+        }
+
+        async function pollIce(receiver) {
+            if (!pc) {
+                return;
+            }
+            try {
+                const response = await fetch('/lecture/signaling/ice?receiver=' + receiver);
+                const data = await response.json();
+                const candidates = data.candidates || [];
+                for (const candidate of candidates) {
+                    try {
+                        await pc.addIceCandidate(candidate);
+                    } catch (err) {
+                        console.warn('Failed to add candidate:', err);
+                    }
+                }
+            } catch (err) {
+                console.warn('ICE polling error:', err);
+            }
+        }
+
+        startBtn.addEventListener('click', startBroadcast);
+    </script>
+</body>
+</html>

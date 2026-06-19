@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Face Recognition - Attendance System</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2ff; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); padding: 30px; }
+        h1 { color: #333; }
+        .preview-box { background: #000; border-radius: 16px; overflow: hidden; min-height: 300px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
+        .preview-box video { width: 100%; height: auto; }
+        .btn { background: #667eea; color: white; border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #5568d3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 12px; background: #f7f8ff; }
+        .status { margin-top: 10px; font-weight: bold; }
+        .success { color: #4CAF50; }
+        .warning { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Test Face Recognition</h1>
+        <p>Use this tool to test if the system correctly recognizes your enrolled face.</p>
+        
+        <div class="preview-box" id="previewBox">
+            <span style="color:#fff; opacity:.72;">Camera preview will appear here</span>
+        </div>
+        
+        <div class="status" id="status">Status: Camera initializing...</div>
+        
+        <div class="result" id="result" style="display:none;">
+            <h3>Recognition Result:</h3>
+            <div id="detectedName"></div>
+            <div id="confidence"></div>
+        </div>
+        
+        <div style="margin-top:20px;">
+            <button class="btn" id="captureBtn">📷 Capture & Test Recognition</button>
+            <button class="btn" id="enrollBtn" style="background:#4CAF50; margin-left:10px;">👤 Enroll New Face First</button>
+        </div>
+    </div>
+
+    <script>
+        const previewBox = document.getElementById('previewBox');
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        const detectedName = document.getElementById('detectedName');
+        const confidence = document.getElementById('confidence');
+        const captureBtn = document.getElementById('captureBtn');
+        const enrollBtn = document.getElementById('enrollBtn');
+
+        let stream = null;
+        let video = document.createElement('video');
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+
+        enrollBtn.addEventListener('click', () => {
+            window.location.href = '/enroll_face';
+        });
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                video.srcObject = stream;
+                video.play();
+                previewBox.innerHTML = '';
+                previewBox.appendChild(video);
+                status.textContent = 'Status: Ready - Click Capture to test recognition';
+            } catch (err) {
+                status.innerHTML = '<span class="warning">⚠ Camera access failed. Please enroll face first.</span>';
+            }
+        }
+
+        async function captureAndTest() {
+            if (!stream) {
+                await startCamera();
+                return;
+            }
+            
+            if (!video.videoWidth) {
+                status.textContent = 'Status: Waiting for camera...';
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            result.style.display = 'block';
+            detectedName.textContent = 'Testing...';
+            confidence.textContent = '';
+            status.textContent = 'Status: Processing...';
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('frame', blob, 'test.jpg');
+                
+                try {
+                    const response = await fetch('/api/camera/frame', { 
+                        method: 'POST', 
+                        body: formData 
+                    });
+                    const data = await response.json();
+                    
+                    if (data.detected && data.detected.length > 0) {
+                        detectedName.innerHTML = '<strong>Detected:</strong> ' + data.detected.join(', ');
+                        confidence.textContent = 'Confidence: High match';
+                        status.innerHTML = '<span class="success">✓ Recognition successful!</span>';
+                    } else {
+                        detectedName.innerHTML = '<strong>Detected:</strong> No match';
+                        confidence.textContent = 'Please ensure your face is enrolled';
+                        status.innerHTML = '<span class="warning">⚠ No face recognized - try different angle/lighting</span>';
+                    }
+                } catch (err) {
+                    detectedName.textContent = 'Error: ' + err.message;
+                }
+            }, 'image/jpeg', 0.9);
+        }
+
+        captureBtn.addEventListener('click', captureAndTest);
+        startCamera();
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilot Results - Attendance System</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2ff; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        h1 { color: #333; margin-bottom: 10px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { display: inline-block; padding: 12px 20px; border-radius: 10px; text-decoration: none; color: white; font-weight: 600; background: #667eea; }
+        .btn:hover { opacity: 0.95; }
+        .alert { padding: 16px; margin-bottom: 20px; border-radius: 12px; border: 1px solid transparent; }
+        .alert.success { background: #e7f7ed; border-color: #c8e6c9; color: #2e7d32; }
+        .alert.error { background: #fdecea; border-color: #f5c6cb; color: #a94442; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #f9fbff; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; }
+        input, textarea, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; margin-bottom: 16px; font-size: 14px; }
+        textarea { min-height: 120px; resize: vertical; }
+        .submit-row { display: flex; justify-content: flex-end; }
+        .submit-btn { background: #10b981; }
+        .submit-btn:hover { background: #0f766e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 14px; }
+        th { background: #f1f5f9; color: #334155; }
+        .small-text { font-size: 13px; color: #64748b; }
+        .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+        .summary-card { background: #eef2ff; padding: 18px; border-radius: 14px; }
+        .summary-label { font-weight: 700; color: #334155; margin-bottom: 10px; }
+        .summary-value { font-size: 28px; font-weight: 700; color: #0f172a; }
+        .summary-bar {
+            height: 16px;
+            width: 100%;
+            background: #dbeafe;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .summary-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22c55e, #0ea5e9); }
+        .metric-label { display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <div>
+                <h1>📝 Pilot Results</h1>
+                <p class="small-text">Log pilot testing outcomes and review recent records.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if summary and summary.count > 0 %}
+            <div class="card" style="margin-bottom: 20px;">
+                <h2>Pilot Summary Metrics</h2>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Records</div>
+                        <div class="summary-value">{{ summary.count }}</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Average Accuracy</div>
+                        <div class="summary-value">{{ summary.avg_accuracy }}</div>
+                        {% if summary.avg_accuracy != 'N/A' %}
+                        {% set accuracy_value = summary.avg_accuracy.replace('%', '') | float %}
+                        <div class="summary-bar"><div class="summary-fill" style="width: {{ accuracy_value }}%;"></div></div>
+                        <div class="metric-label"><span>0%</span><span>100%</span></div>
+                        {% endif %}
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg Response Time</div>
+                        <div class="summary-value">{{ summary.avg_response_time_ms }} ms</div>
+                        {% if summary.avg_response_time_ms != 'N/A' %}
+                        {% set response_val = summary.avg_response_time_ms | float %}
+                        {% set response_pct = (response_val / 500 * 100) if response_val < 500 else 100 %}
+                        <div class="summary-bar"><div class="summary-fill" style="width: {{ response_pct }}%; background: linear-gradient(90deg, #f97316, #ef4444);"></div></div>
+                        <div class="metric-label"><span>0ms</span><span>500ms</span></div>
+                        {% endif %}
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg False Positives</div>
+                        <div class="summary-value">{{ summary.avg_false_positives }}</div>
+                        {% if summary.avg_false_positives != 'N/A' %}
+                        {% set fp_val = summary.avg_false_positives | float %}
+                        {% set fp_pct = (fp_val / 10 * 100) if fp_val < 10 else 100 %}
+                        <div class="summary-bar"><div class="summary-fill" style="width: {{ fp_pct }}%; background: linear-gradient(90deg, #fb7185, #f43f5e);"></div></div>
+                        <div class="metric-label"><span>0</span><span>10</span></div>
+                        {% endif %}
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg False Negatives</div>
+                        <div class="summary-value">{{ summary.avg_false_negatives }}</div>
+                        {% if summary.avg_false_negatives != 'N/A' %}
+                        {% set fn_val = summary.avg_false_negatives | float %}
+                        {% set fn_pct = (fn_val / 10 * 100) if fn_val < 10 else 100 %}
+                        <div class="summary-bar"><div class="summary-fill" style="width: {{ fn_pct }}%; background: linear-gradient(90deg, #0ea5e9, #38bdf8);"></div></div>
+                        <div class="metric-label"><span>0</span><span>10</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="grid">
+            <div class="card">
+                <h2>Record a New Pilot Result</h2>
+                <form method="post">
+                    <label for="event_date">Event Date</label>
+                    <input type="date" id="event_date" name="event_date" value="{{ active_class.get('started_at', '')[:10] if active_class.get('started_at') else '' }}">
+
+                    <label for="class_name">Class Name</label>
+                    <input type="text" id="class_name" name="class_name" value="{{ active_class.get('class_name', '') }}" required>
+
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" value="{{ active_class.get('subject', '') }}">
+
+                    <label for="participant_name">Participant Name</label>
+                    <input type="text" id="participant_name" name="participant_name" required>
+
+                    <label for="accuracy">Recognition Accuracy (%)</label>
+                    <input type="text" id="accuracy" name="accuracy" placeholder="e.g. 92.5">
+
+                    <label for="false_positives">False Positives</label>
+                    <input type="text" id="false_positives" name="false_positives" placeholder="e.g. 1">
+
+                    <label for="false_negatives">False Negatives</label>
+                    <input type="text" id="false_negatives" name="false_negatives" placeholder="e.g. 0">
+
+                    <label for="response_time_ms">Response Time (ms)</label>
+                    <input type="text" id="response_time_ms" name="response_time_ms" placeholder="e.g. 150">
+
+                    <label for="user_feedback">User Feedback</label>
+                    <textarea id="user_feedback" name="user_feedback" placeholder="Describe any student or instructor feedback..."></textarea>
+
+                    <div class="submit-row">
+                        <button type="submit" class="btn submit-btn">Save Pilot Result</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Recent Pilot Records</h2>
+                {% if results %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Class</th>
+                                <th>Participant</th>
+                                <th>Accuracy</th>
+                                <th>FP</th>
+                                <th>FN</th>
+                                <th>Response</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in results[-10:] %}
+                            <tr>
+                                <td>{{ row.event_date }}</td>
+                                <td>{{ row.class_name }}</td>
+                                <td>{{ row.participant_name }}</td>
+                                <td>{{ row.accuracy }}</td>
+                                <td>{{ row.false_positives }}</td>
+                                <td>{{ row.false_negatives }}</td>
+                                <td>{{ row.response_time_ms }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No pilot results logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

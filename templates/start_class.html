@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Start Class - Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 400px; margin: auto; }
+        input { display: block; margin: 10px 0; padding: 8px; width: 100%; }
+        button { padding: 10px; width: 100%; background: #007bff; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h2>Start Class Session</h2>
+    {% if current_class %}
+        <p>Current class: <strong>{{ current_class }}</strong>{% if current_subject %} - {{ current_subject }}{% endif %}</p>
+    {% endif %}
+    <form method="post">
+        <input type="text" name="class_name" placeholder="Class Name (e.g. Math 101)" required>
+        <input type="text" name="subject" placeholder="Subject (optional)">
+        <select name="meeting_provider">
+            <option value="">Meeting Provider (optional)</option>
+            <option value="zoom" {% if meeting_provider == 'zoom' %}selected{% endif %}>Zoom</option>
+            <option value="google_meet" {% if meeting_provider == 'google_meet' %}selected{% endif %}>Google Meet</option>
+            <option value="custom" {% if meeting_provider == 'custom' %}selected{% endif %}>Custom URL</option>
+        </select>
+        <input type="url" name="meeting_url" placeholder="Meeting URL (optional override)" value="{{ meeting_url or '' }}">
+        <input type="number" name="planned_duration_minutes" min="1" placeholder="Planned Class Duration (minutes)" value="{{ planned_duration_minutes or '' }}">
+        <button type="submit">Start Class</button>
+    </form>
+    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

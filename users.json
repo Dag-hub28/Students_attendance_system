@@ -1,0 +1,20 @@
+{
+  "admin": {
+    "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "role": "admin",
+    "name": "Administrator",
+    "created": "2026-03-17"
+  },
+  "Dauglas241": {
+    "password": "455dc63c936b7b9376d89cc1590d84fb572e87ec12add8254cc5c33715b9bc05",
+    "role": "admin",
+    "name": "Dauglas Nyongesa",
+    "created": "2026-03-17"
+  },
+  "Peter": {
+    "password": "455dc63c936b7b9376d89cc1590d84fb572e87ec12add8254cc5c33715b9bc05",
+    "role": "lecturer",
+    "name": "Dr. Peter Kiunjuri",
+    "created": "2026-03-17"
+  }
+}

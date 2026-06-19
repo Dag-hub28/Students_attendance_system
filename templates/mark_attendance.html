@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mark Attendance - Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { max-width: 300px; margin: auto; }
+        input { display: block; margin: 10px 0; padding: 8px; width: 100%; }
+        button { padding: 10px; width: 100%; background: #28a745; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <h2>Mark Attendance</h2>
+    {% if current_class %}
+        <p>Current class: <strong>{{ current_class }}</strong>{% if current_subject %} - {{ current_subject }}{% endif %}</p>
+        {% if meeting_provider %}
+            <p>Meeting provider: <strong>{{ meeting_provider.replace('_', ' ').title() }}</strong></p>
+        {% endif %}
+        {% if meeting_url %}
+            <p>Meeting: <a href="{{ meeting_url }}" target="_blank">Join session</a></p>
+        {% endif %}
+    {% endif %}
+    <form method="post">
+        <label for="student_select">Select student</label>
+        <select id="student_select" name="student_select">
+            <option value="">-- choose a student --</option>
+            {% for student in students %}
+            <option value="{{ student }}">{{ student }}</option>
+            {% endfor %}
+        </select>
+        <p>Or enter manually:</p>
+        <input type="text" name="student_name" placeholder="Student Name">
+        <button type="submit">Mark Present</button>
+    </form>
+    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./faces:/app/faces
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Attendance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header h2 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .class-status {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .class-status.active {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .class-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .class-info label {
+            display: block;
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .class-info .value {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .join-class-section {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .join-class-section h4 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .join-class-section p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .btn-join {
+            background: white;
+            color: #4CAF50;
+            font-weight: bold;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn-join:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .status-card {
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px solid #e6e6e6;
+            background: #fff;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .status-card h4 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-green { background: #e6ffed; color: #14833b; }
+        .badge-amber { background: #fff4e6; color: #b96d1e; }
+        .badge-red { background: #ffe6e6; color: #c62828; }
+
+        .alert-feed {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .alert-item strong {
+            font-weight: 700;
+        }
+
+        .alert-item .alert-type {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #555;
+        }
+
+        .alert-item .alert-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .student-detail {
+            margin-top: 10px;
+        }
+
+        .student-detail table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-detail th,
+        .student-detail td {
+            border: 1px solid #eee;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .student-detail th {
+            background: #f5f5f5;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .student-detail-empty {
+            color: #666;
+            padding: 14px;
+            background: #fafafa;
+            border-radius: 12px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .btn-join.disabled,
+        .btn-join[disabled] {
+            background: #ffffffcc;
+            color: #999;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .no-class-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2>📊 Dashboard</h2>
+                <p style="color: #666; margin-top: 5px;">Welcome, <strong>{{ username }}</strong> <span class="role-badge">{{ role }}</span></p>
+            </div>
+            <div class="header-actions">
+                {% if role == 'admin' %}
+                    <a href="{{ url_for('admin') }}" class="btn btn-primary">⚙️ Admin Panel</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">🚪 Logout</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Lecturer/Admin Panel -->
+            {% if role in ['lecturer', 'admin'] %}
+            <div class="card">
+                <h3>📚 Class Management</h3>
+                {% if current_class %}
+                    <div class="class-status active">
+                        <h4>✓ Class In Session</h4>
+                        <div style="margin-top: 15px;">
+                            <strong>{{ current_class }}</strong>
+                            {% if current_subject %}<p>Subject: {{ current_subject }}</p>{% endif %}
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('mark_attendance_route') }}" class="btn btn-primary">✓ Mark Attendance</a>
+                        <a href="{{ url_for('end_class') }}" class="btn btn-danger">⏹ End Class</a>
+                    </div>
+                    {% if meeting_provider %}
+                        <div class="class-info">
+                            <label>Meeting Provider</label>
+                            <div class="value">{{ meeting_provider.replace('_', ' ').title() }}</div>
+                        </div>
+                    {% endif %}
+                    {% if meeting_url %}
+                        <div class="class-info">
+                            <label>Meeting Link</label>
+                            <a href="{{ meeting_url }}" target="_blank" class="btn btn-primary" style="width: 100%; text-align: center; margin-top: 10px;">🔗 Join Session</a>
+                        </div>
+                    {% endif %}
+                    <div class="class-info">
+                        <label>Continuous Monitoring</label>
+                        <div class="value">{{ 'Active' if continuous_monitor_active else 'Inactive' }}</div>
+                    </div>
+                    <div class="class-info">
+                        <label>Class Duration</label>
+                        <div class="value" id="classDurationValue">{{ class_duration_display or 'N/A' }}</div>
+                    </div>
+                    <div class="class-info">
+                        <label>Planned Total Duration</label>
+                        <div class="value" id="plannedDurationValue">{{ planned_duration_display or 'N/A' }}</div>
+                    </div>
+                    <div class="class-info">
+                        <label>Students Detected</label>
+                        <div class="value" id="detectedStudentsCount">{{ presence_rows|length }}</div>
+                    </div>
+                    {% if current_class %}
+                        {% if continuous_monitor_active %}
+                            <a href="{{ url_for('admin_stop_monitoring') }}" class="btn btn-danger" style="width: 100%; margin-top: 10px;" onclick="window.location.href='{{ url_for('admin_stop_monitoring') }}'; return false;">⏹ Stop Monitoring</a>
+                        {% else %}
+                            <a href="{{ url_for('admin_start_monitoring') }}" class="btn btn-success" style="width: 100%; margin-top: 10px;" onclick="window.location.href='{{ url_for('admin_start_monitoring') }}'; return false;">▶ Start Monitoring</a>
+                        {% endif %}
+                    {% endif %}
+                    <a href="{{ url_for('roster') }}" class="btn btn-primary" style="width: 100%; margin-top: 10px;">👥 View Roster</a>
+                {% else %}
+                    <div class="no-class-message">
+                        <p>No class in session</p>
+                    </div>
+                    <a href="{{ url_for('start_class') }}" class="btn btn-success" style="width: 100%; margin-top: 10px;">▶ Start New Class</a>
+                {% endif %}
+            </div>
+            <div class="card full-width">
+                <h3>🧑‍🤝‍🧑 Enrolled Student Status</h3>
+                {% if student_status_rows %}
+                <div class="status-grid" id="studentStatusGrid">
+                    {% for student in student_status_rows %}
+                    <div class="status-card" data-student-name="{{ student.name | e }}">
+                        <h4>{{ student.name }}</h4>
+                        <span class="status-badge badge-{{ student.color }}">{{ student.status }}</span>
+                        <p style="margin: 10px 0 0; color: #666; font-size: 14px;"><strong>Last Seen:</strong> {{ student.last_seen }}</p>
+                        <p style="margin: 6px 0 0; color: #666; font-size: 14px;"><strong>Duration:</strong> {{ student.duration }}</p>
+                        <p style="margin: 6px 0 0; color: #666; font-size: 14px;"><strong>Attendance:</strong> {{ student.percent }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: #666;">No enrolled students found to display.</p>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h3>🚨 Alert Feed</h3>
+                <ul class="alert-feed" id="alertFeed">
+                    {% if alert_feed %}
+                        {% for alert in alert_feed %}
+                        <li class="alert-item">
+                            <div><strong>{{ alert.student_name }}</strong></div>
+                            <div class="alert-type">{{ alert.alert_type }}</div>
+                            <div>{{ alert.message }}</div>
+                            <div class="alert-time">{{ alert.timestamp }}</div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="alert-item">
+                            <div class="alert-type">No alerts yet</div>
+                            <div>Alert messages will appear here as verification events happen.</div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="card full-width" id="studentDetailCard" style="display: none;">
+                <h3 id="studentDetailTitle">Student Verification History</h3>
+                <div class="student-detail" id="studentDetailContent">
+                    <div class="student-detail-empty">Click a student tile to view detailed verification history, match scores, and liveness events.</div>
+                </div>
+            </div>
+            {% if role in ['lecturer', 'admin'] %}
+            <div class="card full-width">
+                <h3>⏱ Attendance Time Summary</h3>
+                {% if presence_rows %}
+                <div style="margin-bottom: 15px;">
+                    <a href="{{ url_for('export_presence_summary') }}" class="btn btn-success">📥 Download as CSV</a>
+                </div>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>First Seen</th>
+                        <th>Last Seen</th>
+                        <th>Duration</th>
+                        <th>Percent of Class</th>
+                    </tr>
+                    <tbody id="presenceSummaryTableBody">
+                    {% for row in presence_rows %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.first_seen }}</td>
+                        <td>{{ row.last_seen }}</td>
+                        <td>{{ row.duration }}</td>
+                        <td>{{ row.percent }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="color: #666;">No student presence details have been recorded yet.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <h3>📈 Analytics & Reports</h3>
+                <a href="{{ url_for('analytics') }}" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">📊 View Analytics</a>
+                <a href="{{ url_for('send_report') }}" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">📧 Send Weekly Report</a>
+                <a href="{{ url_for('pilot_results') }}" class="btn btn-success" style="width: 100%;">📝 Pilot Results</a>
+            </div>
+            
+            <!-- Student Panel -->
+            {% elif role == 'student' %}
+            <div class="card full-width">
+                <h3>🎓 Student Portal</h3>
+                <div class="action-buttons" style="margin-bottom: 20px;">
+                    <a href="{{ url_for('enroll_face') }}" class="btn btn-success" style="width: 100%;">👤 Register Face</a>
+                </div>
+                <div class="class-info" style="margin-bottom: 20px;">
+                    <label>Face Enrollment Status</label>
+                    <div class="value">
+                        {% if student_face_count > 0 %}
+                            {{ student_face_count }} image{{ 's' if student_face_count != 1 else '' }} registered
+                        {% else %}
+                            No face enrolled yet. Please register your face before joining class.
+                        {% endif %}
+                    </div>
+                </div>
+{% if student_face_count > 0 %}
+                 <div class="class-info" style="margin-bottom: 20px;">
+                     <label>Registered Face Files</label>
+                     <div class="value" style="font-size: 14px; color: #444;">
+                         <ul style="margin: 0; padding-left: 18px;">
+                             {% for face_path in student_face_names %}
+                                 <li>{{ face_path.split('/')[-1] }}</li>
+                             {% endfor %}
+                         </ul>
+                     </div>
+                 </div>
+                 <div class="action-buttons" style="margin-bottom: 20px;">
+                     <a href="{{ url_for('enroll_face') }}" class="btn btn-primary" style="width: 100%;">🔄 Update Face Data</a>
+                     <a href="{{ url_for('delete_my_face_data') }}" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Are you sure you want to permanently delete your face data? This cannot be undone.');">🗑 Delete My Face Data</a>
+                 </div>
+                 {% endif %}
+                 <div class="class-info" style="margin-bottom: 20px;">
+                     <label>Monitoring Status</label>
+                     <div class="value">
+                         {% if monitoring_active %}
+                             Active for {{ student_class or 'current class' }}
+                         {% else %}
+                             Not monitoring
+                         {% endif %}
+                     </div>
+                 </div>
+                 <div class="action-buttons" style="margin-bottom: 20px;">
+                     <a href="{{ url_for('test_camera') }}" class="btn btn-primary" style="width: 100%;">📹 Test Camera Permissions</a>
+                 </div>
+                 {% if my_presence %}
+                 <div class="class-info" style="margin-bottom: 20px;">
+                     <label>Your Current Presence Time</label>
+                     <div class="value">{{ my_presence.duration }}</div>
+                 </div>
+                 <div class="class-info" style="margin-bottom: 20px;">
+                     <label>Your Percent of Class</label>
+                     <div class="value">{{ my_presence.percent }}</div>
+                 </div>
+                 {% endif %}
+                <div id="classCheckContainer">
+                    <p style="text-align: center; color: #666;">Checking for active classes...</p>
+                </div>
+            </div>
+            
+            {% endif %}
+            
+            <!-- Attendance Summary (All Users) -->
+            <div class="card full-width">
+                <h3>📋 Recent Attendance Summary</h3>
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Records</th>
+                        <th>Status</th>
+                    </tr>
+                    {% if data %}
+                        {% for item in data %}
+                        <tr>
+                            <td><strong>{{ item.date }}</strong></td>
+                            <td>{{ item.total }}</td>
+                            <td><span style="color: #4CAF50; font-weight: bold;">✓ {{ item.present }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #999;">No attendance records yet</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check for active classes every 5 seconds (for students)
+        {% if role == 'student' %}
+        const hasFaceEnrollment = {{ student_face_count | default(0) }} > 0;
+
+        async function checkActiveClasses() {
+            try {
+                const response = await fetch('/get_active_classes');
+                const data = await response.json();
+                const container = document.getElementById('classCheckContainer');
+                
+                if (data.active) {
+                    if (!hasFaceEnrollment) {
+                        container.innerHTML = `
+                            <div class="join-class-section">
+                                <h4>⚠️ Face Not Enrolled</h4>
+                                <p><strong>${data.class_name}</strong></p>
+                                ${data.subject ? `<p>Subject: ${data.subject}</p>` : ''}
+                                <p style="margin-top: 10px; color: #a33;">Please register your face before joining class.</p>
+                                <div style="display: grid; gap: 10px;">
+                                    <a href="{{ url_for('enroll_face') }}" class="btn btn-join">👤 Register Face Now</a>
+                                    <span class="btn btn-join disabled">📹 Join Class & Start Monitoring</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="join-class-section">
+                                <h4>✅ Class Available to Join!</h4>
+                                <p><strong>${data.class_name}</strong></p>
+                                ${data.subject ? `<p>Subject: ${data.subject}</p>` : ''}
+                                <a href="/join_class/${encodeURIComponent(data.class_name)}" class="btn btn-join" onclick="window.location.href='/join_class/${encodeURIComponent(data.class_name)}'; return false;">📹 Join Class & Start Monitoring</a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <p>No active classes at the moment.</p>
+                            <p>Wait for your lecturer to start a class.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error checking classes:', error);
+            }
+        }
+        
+        // Check on page load and every 5 seconds
+        checkActiveClasses();
+        setInterval(checkActiveClasses, 5000);
+        {% endif %}
+
+        {% if role in ['lecturer', 'admin'] %}
+        let studentHistoryMap = {};
+        let selectedStudent = null;
+
+        function renderStudentDetail(studentName) {
+            const detailCard = document.getElementById('studentDetailCard');
+            const detailTitle = document.getElementById('studentDetailTitle');
+            const detailContent = document.getElementById('studentDetailContent');
+            if (!detailCard || !detailTitle || !detailContent) return;
+
+            selectedStudent = studentName;
+            detailCard.style.display = 'block';
+            detailTitle.textContent = `${studentName} - Verification History`;
+            const history = studentHistoryMap[studentName] || [];
+
+            if (!history.length) {
+                detailContent.innerHTML = '<div class="student-detail-empty">No verification events have been recorded for this student yet.</div>';
+                return;
+            }
+
+            detailContent.innerHTML = `
+                <table>
+                    <tr>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Detected Faces</th>
+                        <th>Match Score</th>
+                    </tr>
+                    ${history.map(event => `
+                        <tr>
+                            <td>${event.timestamp}</td>
+                            <td>${event.status.replace('_', ' ')}</td>
+                            <td>${event.detected_names.length ? event.detected_names.join(', ') : 'None'}</td>
+                            <td>${event.score !== null && event.score !== undefined ? event.score.toFixed(2) : 'N/A'}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        }
+
+        function renderStudentStatusGrid(rows) {
+            const grid = document.getElementById('studentStatusGrid');
+            if (!grid) return;
+
+            if (!rows || rows.length === 0) {
+                grid.innerHTML = '<p style="color: #666;">No enrolled students found to display.</p>';
+                return;
+            }
+
+            grid.innerHTML = rows.map(row => `
+                <div class="status-card" data-name="${row.name}">
+                    <h4>${row.name}</h4>
+                    <span class="status-badge badge-${row.color}">${row.status}</span>
+                    <p style="margin: 10px 0 0; color: #666; font-size: 14px;"><strong>Last Seen:</strong> ${row.last_seen}</p>
+                    <p style="margin: 6px 0 0; color: #666; font-size: 14px;"><strong>Duration:</strong> ${row.duration}</p>
+                    <p style="margin: 6px 0 0; color: #666; font-size: 14px;"><strong>Attendance:</strong> ${row.percent}</p>
+                </div>
+            `).join('');
+
+            grid.querySelectorAll('.status-card').forEach(card => {
+                card.addEventListener('click', () => renderStudentDetail(card.dataset.name));
+            });
+        }
+
+        function renderAlertFeed(alerts) {
+            const feed = document.getElementById('alertFeed');
+            if (!feed) return;
+
+            if (!alerts || alerts.length === 0) {
+                feed.innerHTML = '<li class="alert-item"><div class="alert-type">No alerts yet</div><div>Alert messages will appear here as verification events happen.</div></li>';
+                return;
+            }
+
+            feed.innerHTML = alerts.map(alert => `
+                <li class="alert-item">
+                    <div><strong>${alert.student_name}</strong></div>
+                    <div class="alert-type">${alert.alert_type}</div>
+                    <div>${alert.message}</div>
+                    <div class="alert-time">${alert.timestamp}</div>
+                </li>
+            `).join('');
+        }
+
+        async function refreshPresenceSummary() {
+            try {
+                const response = await fetch('/presence_summary_data');
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json();
+                const durationEl = document.getElementById('classDurationValue');
+                const plannedDurationEl = document.getElementById('plannedDurationValue');
+                const detectedEl = document.getElementById('detectedStudentsCount');
+                const tbody = document.getElementById('presenceSummaryTableBody');
+                if (durationEl) {
+                    durationEl.textContent = data.class_duration_display || 'N/A';
+                }
+                if (plannedDurationEl) {
+                    plannedDurationEl.textContent = data.planned_duration_display || 'N/A';
+                }
+                if (detectedEl) {
+                    detectedEl.textContent = data.detected;
+                }
+                if (tbody) {
+                    if (!data.presence_rows || data.presence_rows.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No student presence details have been recorded yet.</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.presence_rows.map(row => `
+                            <tr>
+                                <td>${row.name}</td>
+                                <td>${row.first_seen}</td>
+                                <td>${row.last_seen}</td>
+                                <td>${row.duration}</td>
+                                <td>${row.percent}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+                studentHistoryMap = data.student_history || {};
+                renderStudentStatusGrid(data.student_status_rows);
+                renderAlertFeed(data.alert_feed);
+                if (selectedStudent) {
+                    renderStudentDetail(selectedStudent);
+                }
+            } catch (error) {
+                console.error('Error refreshing presence summary:', error);
+            }
+        }
+
+        refreshPresenceSummary();
+        setInterval(refreshPresenceSummary, 5000);
+        {% endif %}
+    </script>
+</body>
+</html>

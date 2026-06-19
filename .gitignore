@@ -1,0 +1,9 @@
+myenv/
+myemv/
+data/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+streamlit.log
+.DS_Store

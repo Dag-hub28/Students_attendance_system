@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lecture Audio Listener</title>
+    <style>
+        body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fb; color: #333; margin: 0; padding: 20px;}
+        .page {max-width: 800px; margin: 0 auto;}
+        h1 {margin-bottom: 16px;}
+        .status {margin-top: 20px; padding: 18px; background: white; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06);}
+        audio {width: 100%; margin-top: 20px; border-radius: 12px;}
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Lecture Audio Listener</h1>
+        <p>This page will connect to the teacher audio broadcast and play live lecture audio.</p>
+        <div class="status" id="status">
+            <p><strong>Status:</strong> waiting for teacher offer...</p>
+            <p id="logMessage">Open the teacher broadcast page first at <code>/lecture/teacher</code>.</p>
+        </div>
+        <audio id="remoteAudio" controls autoplay></audio>
+    </div>
+    <script>
+        const statusText = document.getElementById('status');
+        const logMessage = document.getElementById('logMessage');
+        const remoteAudio = document.getElementById('remoteAudio');
+        let pc = null;
+        let offerPolling = null;
+        let icePolling = null;
+
+        function log(text) {
+            logMessage.textContent = text;
+            console.log(text);
+        }
+
+        async function startListener(offer) {
+            pc = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+            pc.ontrack = event => {
+                if (event.streams && event.streams[0]) {
+                    remoteAudio.srcObject = event.streams[0];
+                }
+            };
+            pc.onicecandidate = async event => {
+                if (event.candidate) {
+                    await fetch('/lecture/signaling/ice?sender=student', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(event.candidate)
+                    });
+                }
+            };
+
+            await pc.setRemoteDescription(offer);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await fetch('/lecture/signaling/answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(answer)
+            });
+
+            log('Answer sent. Waiting for audio from the teacher.');
+            icePolling = setInterval(() => pollIce('student'), 2000);
+        }
+
+        async function checkForOffer() {
+            try {
+                const response = await fetch('/lecture/signaling/offer');
+                const offer = await response.json();
+                if (offer && offer.type === 'offer' && !pc) {
+                    log('Offer received from teacher. Connecting...');
+                    clearInterval(offerPolling);
+                    await startListener(offer);
+                }
+            } catch (err) {
+                console.warn('Offer polling error:', err);
+            }
+        }
+
+        async function pollIce(receiver) {
+            if (!pc) return;
+            try {
+                const response = await fetch('/lecture/signaling/ice?receiver=' + receiver);
+                const data = await response.json();
+                const candidates = data.candidates || [];
+                for (const candidate of candidates) {
+                    try {
+                        await pc.addIceCandidate(candidate);
+                    } catch (err) {
+                        console.warn('Failed to add candidate:', err);
+                    }
+                }
+            } catch (err) {
+                console.warn('ICE polling error:', err);
+            }
+        }
+
+        offerPolling = setInterval(checkForOffer, 2000);
+    </script>
+</body>
+</html>
