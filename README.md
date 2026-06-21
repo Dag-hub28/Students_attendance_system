@@ -111,29 +111,46 @@ http://localhost:8501
 
 If you want, create a new admin or lecturer account from the login/register page after first launch.
 
-## Deploy to Render (Quick Start)
+## Deploy to Railway (Quick Start)
 
-This project includes a `render.yaml` manifest so Render can auto-detect and deploy the app.
+This project can be deployed to Railway as a long-running Python web service.
 
 Steps to deploy:
 
-1. Push your changes to GitHub (already done if you followed earlier steps).
-2. Sign in to https://render.com and connect your GitHub account.
-3. Create a new service and select this repository (`Students_attendance_system`).
-   - Render will read `render.yaml` and use the provided `buildCommand` and `startCommand`.
-4. Ensure the service is set to deploy from the `main` branch.
-
-Streamlit will use the port provided by Render via the `$PORT` environment variable.
-
-If you prefer to create the service manually, use these settings:
+1. Push your changes to GitHub.
+2. Sign in to https://railway.app and connect your GitHub account.
+3. Create a new project and choose **Deploy from GitHub repo**.
+4. Select the repository for this app.
+5. Set the branch to `main`.
+6. Use the following commands:
 
 ```text
 Build Command: pip install -r requirements.txt
-Start Command: streamlit run app.py --server.port $PORT --server.headless true
-Environment: Python
-Branch: main
+Start Command: bash start.sh
 ```
 
-After creating the service, trigger a manual deploy (or wait for auto-deploy) and open the service URL Render provides.
+Railway will automatically provide the `PORT` environment variable.
 
-If you'd like, I can create the Render service for you via the Render API next — would you like me to do that?
+Alternatively, if your host executes commands directly and expands shell variables, you can use:
+
+```text
+Start Command: bash -lc "streamlit run app.py --server.port $PORT --server.headless true"
+```
+
+### Recommended settings
+
+- Environment: Python
+- Service type: Web Service
+- Branch: main
+
+### After deployment
+
+- Railway will run your app and expose a public URL.
+- Open the generated URL to access the application.
+- If the first deploy fails, inspect the Railway build logs for dependency or startup errors.
+
+### Notes
+
+- This app stores data locally in the `data/` directory.
+- On Railway, local files are ephemeral. For production data persistence, use external storage or a database.
+- The face recognition helper may require a local webcam and therefore may not function fully in a hosted environment.
