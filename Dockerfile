@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libgl1 \
     ffmpeg \
+    bash \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -23,13 +24,14 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Copy application code
 COPY . /app
 
+# Ensure the start script is executable
+RUN chmod +x /app/start.sh
+
 # Create non-root user and switch
 RUN useradd -m appuser || true
 USER appuser
 
-EXPOSE 5000
+EXPOSE 8501
 
-ENV FLASK_ENV=production
-
-# Use gunicorn to serve the Flask app
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
+# Start the Streamlit application with the shared startup script
+CMD ["bash", "start.sh"]

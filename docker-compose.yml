@@ -2,10 +2,10 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "8501:8501"
     volumes:
       - .:/app
-      - ./faces:/app/faces
+      - ./data:/app/data
     env_file:
       - .env
     restart: unless-stopped
